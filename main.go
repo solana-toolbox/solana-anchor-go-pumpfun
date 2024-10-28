@@ -842,6 +842,7 @@ func decodeErrorCode(rpcErr error) (errorCode int, ok bool) {
 						instruction.Accounts,
 						addresses,
 						instruction.Args,
+						&idl,
 					))
 					groupMemberIndex++
 				}
@@ -1331,6 +1332,7 @@ func genAccountGettersSetters(
 	accounts []IdlAccountItem,
 	addresses map[string]string,
 	args []IdlField,
+	idl *IDL,
 ) Code {
 	code := Empty()
 
@@ -1425,6 +1427,7 @@ func genAccountGettersSetters(
 			// find seeds
 			seedValues := make([][]byte, len(account.PDA.Seeds))
 			seedRefs := make([]string, len(account.PDA.Seeds))
+			seedTypes := make([]IdlType, len(account.PDA.Seeds))
 
 			var seedProgramValue *[]byte
 			if account.PDA.Program != nil {
@@ -1450,13 +1453,35 @@ func genAccountGettersSetters(
 					// Then check if it's an argument field reference
 					parts := strings.Split(seedDef.Path, ".")
 					if len(parts) == 2 {
+						// Find the argument type
+						var argType IdlType
 						for _, arg := range args {
 							if arg.Name == parts[0] {
-								// Found the argument, reference its field
-								seedRefs[i] = ToLowerCamel(parts[0]) + "" + ToCamel(parts[1])
-								continue OUTER
+								// Found the argument, now need to find the field type
+								if arg.Type.IsIdlTypeDefined() {
+									// Look up the defined type
+									definedType := idl.Types.GetByName(arg.Type.GetIdlTypeDefined().Defined.Name)
+									if definedType != nil && definedType.Type.Fields != nil {
+										// Find the field
+										for _, field := range *definedType.Type.Fields {
+											if field.Name == parts[1] {
+												argType = field.Type
+												break
+											}
+										}
+									}
+								}
+								break
 							}
 						}
+
+						paramName := ToLowerCamel(parts[0] + "_" + parts[1])
+
+						seedTypes[i] = argType
+
+						// Update the function signature to use the correct type
+						seedRefs[i] = paramName
+						continue OUTER
 					}
 
 					panic(fmt.Sprintf("cannot find related account or argument path %q", seedDef.Path))
@@ -1468,9 +1493,13 @@ func genAccountGettersSetters(
 				Params(
 					ListFunc(func(params *Group) {
 						// Parameters:
-						for _, seedRef := range seedRefs {
+						for i, seedRef := range seedRefs {
 							if seedRef != "" {
-								params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
+									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else {
+									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								}
 							}
 						}
 						params.Id("knownBumpSeed").Uint8()
@@ -1499,7 +1528,11 @@ func genAccountGettersSetters(
 						} else {
 							seedRef := seedRefs[i]
 							body.Commentf("path: %s", seedRef)
-							body.Add(Id("seeds").Op("=").Append(Id("seeds"), Id(seedRef).Dot("Bytes").Call()))
+							if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
+								body.Add(Id("seeds").Op("=").Append(Id("seeds"), Id(seedRef).Index(Op(":")))) // Just pass the byte array directly
+							} else {
+								body.Add(Id("seeds").Op("=").Append(Id("seeds"), Id(seedRef).Dot("Bytes").Call()))
+							}
 						}
 					}
 
@@ -1540,9 +1573,13 @@ func genAccountGettersSetters(
 				Params(
 					ListFunc(func(params *Group) {
 						// Parameters:
-						for _, seedRef := range seedRefs {
+						for i, seedRef := range seedRefs {
 							if seedRef != "" {
-								params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
+									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else {
+									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								}
 							}
 						}
 						params.Id("bumpSeed").Uint8()
@@ -1574,9 +1611,13 @@ func genAccountGettersSetters(
 				Params(
 					ListFunc(func(params *Group) {
 						// Parameters:
-						for _, seedRef := range seedRefs {
+						for i, seedRef := range seedRefs {
 							if seedRef != "" {
-								params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
+									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else {
+									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								}
 							}
 						}
 						params.Id("bumpSeed").Uint8()
@@ -1611,9 +1652,13 @@ func genAccountGettersSetters(
 				Params(
 					ListFunc(func(params *Group) {
 						// Parameters:
-						for _, seedRef := range seedRefs {
+						for i, seedRef := range seedRefs {
 							if seedRef != "" {
-								params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
+									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else {
+									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								}
 							}
 						}
 					}),
@@ -1645,9 +1690,13 @@ func genAccountGettersSetters(
 				Params(
 					ListFunc(func(params *Group) {
 						// Parameters:
-						for _, seedRef := range seedRefs {
+						for i, seedRef := range seedRefs {
 							if seedRef != "" {
-								params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
+									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else {
+									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
+								}
 							}
 						}
 					}),
