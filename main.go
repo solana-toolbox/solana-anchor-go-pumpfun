@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
-	"github.com/gagliardetto/solana-go"
 	"io/ioutil"
 	"os"
 	"path"
@@ -13,6 +11,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/gagliardetto/solana-go"
 
 	. "github.com/dave/jennifer/jen"
 	"github.com/fragmetric-labs/solana-anchor-go/sighash"
@@ -840,6 +841,7 @@ func decodeErrorCode(rpcErr error) (errorCode int, ok bool) {
 						lowerAccountName,
 						instruction.Accounts,
 						addresses,
+						instruction.Args,
 					))
 					groupMemberIndex++
 				}
@@ -1328,6 +1330,7 @@ func genAccountGettersSetters(
 	lowerAccountName string,
 	accounts []IdlAccountItem,
 	addresses map[string]string,
+	args []IdlField,
 ) Code {
 	code := Empty()
 
@@ -1436,13 +1439,27 @@ func genAccountGettersSetters(
 				if seedDef.Value != nil { // type: const
 					seedValues[i] = seedDef.Value
 				} else {
+					// First check if it's an account reference
 					for _, acc := range accounts {
 						if acc.IdlAccount.Name == seedDef.Path {
 							seedRefs[i] = ToLowerCamel(acc.IdlAccount.Name)
 							continue OUTER
 						}
 					}
-					panic("cannot find related account path " + seedDef.Path)
+
+					// Then check if it's an argument field reference
+					parts := strings.Split(seedDef.Path, ".")
+					if len(parts) == 2 {
+						for _, arg := range args {
+							if arg.Name == parts[0] {
+								// Found the argument, reference its field
+								seedRefs[i] = ToLowerCamel(parts[0]) + "" + ToCamel(parts[1])
+								continue OUTER
+							}
+						}
+					}
+
+					panic(fmt.Sprintf("cannot find related account or argument path %q", seedDef.Path))
 				}
 			}
 
