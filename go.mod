@@ -1,4 +1,4 @@
-module github.com/fragmetric-labs/solana-anchor-go
+module github.com/henrymbaldwin/solana-anchor-go
 
 go 1.22
 
