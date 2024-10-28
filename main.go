@@ -342,7 +342,6 @@ func DecodeInstructions(message *ag_solanago.Message) (instructions []*Instructi
 
 	{
 		file := NewGoFile(idl.Metadata.Name, true)
-
 		// Declare account layouts from IDL:
 		for _, evt := range idl.Events {
 			if _, ok := defs[evt.Name]; ok {
@@ -378,6 +377,7 @@ func DecodeInstructions(message *ag_solanago.Message) (instructions []*Instructi
 		file.Add(Empty().Var().Defs(Id("_").Op("*").Qual("strings", "Builder").Op("=").Nil()))
 		file.Add(Empty().Var().Defs(Id("_").Op("*").Qual("encoding/base64", "Encoding").Op("=").Nil()))
 		file.Add(Empty().Var().Defs(Id("_").Op("*").Qual(PkgDfuseBinary, "Decoder").Op("=").Nil())) // TODO: ..
+		file.Add(Empty().Var().Defs(Id("_").Op("*").Qual("fmt", "Formatter").Op("=").Nil()))
 		file.Add(Empty().Id(`
 type Event struct {
 	Name string
