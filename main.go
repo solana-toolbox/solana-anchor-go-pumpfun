@@ -1507,6 +1507,8 @@ func genAccountGettersSetters(
 							if seedRef != "" {
 								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
 									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else if seedTypes[i].asString == "i64" {
+									params.Id(seedRef).Index(Lit(8)).Byte()
 								} else {
 									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
 								}
@@ -1541,6 +1543,8 @@ func genAccountGettersSetters(
 							body.Commentf("path: %s", seedRef)
 							if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
 								body.Add(Id("seeds").Op("=").Append(Id("seeds"), Id(seedRef).Index(Op(":")))) // Just pass the byte array directly
+							} else if seedTypes[i].asString == "i64" {
+								body.Add(Id("seeds").Op("=").Append(Id("seeds"), Id(seedRef).Index(Op(":"))))
 							} else {
 								body.Add(Id("seeds").Op("=").Append(Id("seeds"), Id(seedRef).Dot("Bytes").Call()))
 							}
@@ -1588,6 +1592,8 @@ func genAccountGettersSetters(
 							if seedRef != "" {
 								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
 									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else if seedTypes[i].asString == "i64" {
+									params.Id(seedRef).Index(Lit(8)).Byte()
 								} else {
 									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
 								}
@@ -1626,6 +1632,8 @@ func genAccountGettersSetters(
 							if seedRef != "" {
 								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
 									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else if seedTypes[i].asString == "i64" {
+									params.Id(seedRef).Index(Lit(8)).Byte()
 								} else {
 									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
 								}
@@ -1667,6 +1675,8 @@ func genAccountGettersSetters(
 							if seedRef != "" {
 								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
 									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else if seedTypes[i].asString == "i64" {
+									params.Id(seedRef).Index(Lit(8)).Byte()
 								} else {
 									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
 								}
@@ -1705,6 +1715,8 @@ func genAccountGettersSetters(
 							if seedRef != "" {
 								if seedTypes[i].IsArray() && seedTypes[i].GetArray().Elem.GetString() == "u8" {
 									params.Id(seedRef).Index(Lit(32)).Byte()
+								} else if seedTypes[i].asString == "i64" {
+									params.Id(seedRef).Index(Lit(8)).Byte()
 								} else {
 									params.Id(seedRef).Qual(PkgSolanaGo, "PublicKey")
 								}
