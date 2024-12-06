@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -1450,6 +1451,15 @@ func genAccountGettersSetters(
 						}
 					}
 
+					for _, argv := range args {
+						if argv.Name == seedDef.Path {
+
+							seedRefs[i] = ToLowerCamel(argv.Name)
+							seedTypes[i] = argv.Type
+							continue OUTER
+						}
+					}
+
 					// Then check if it's an argument field reference
 					parts := strings.Split(seedDef.Path, ".")
 					if len(parts) == 2 {
@@ -1519,7 +1529,8 @@ func genAccountGettersSetters(
 
 					for i, seedValue := range seedValues {
 						if seedValue != nil {
-							body.Commentf("const: %s", string(seedValue))
+							//body.Commentf("const: %s", string(seedValue))
+							body.Commentf("const: 0x%s", hex.EncodeToString(seedValue))
 							body.Add(Id("seeds").Op("=").Append(Id("seeds"), Index().Byte().ValuesFunc(func(group *Group) {
 								for _, v := range seedValue {
 									group.LitByte(v)
