@@ -1484,6 +1484,16 @@ func genAccountGettersSetters(
 								break
 							}
 						}
+						for _, typ := range idl.Types {
+							if typ.Name == seedDef.Account {
+								for _, field := range *typ.Type.Fields {
+									if field.Name == parts[1] {
+										argType = field.Type
+										break
+									}
+								}
+							}
+						}
 
 						paramName := ToLowerCamel(parts[0] + "_" + parts[1])
 
