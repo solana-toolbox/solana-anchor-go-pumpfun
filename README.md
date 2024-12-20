@@ -24,3 +24,15 @@ And check `./example/dummy_test.go` for generated code usage.
 - [ ] handle all possible seed inputs (`[32]u8`, const, `PublicKey` handled as single nested input fields)
 - [ ] handle tuple types
 - [ ] constants (?)
+
+## 小发现
+发现部分老的idl文件需要先进行转换，再使用
+
+不然会出现：
+```
+panic(`not implemented - only IDL from ("anchor": ">=0.30.0") is available`)
+```
+这样转换：
+```
+anchor idl convert  6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P_266791762.json >pump.json
+```
