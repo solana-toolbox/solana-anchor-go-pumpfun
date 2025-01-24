@@ -1433,7 +1433,7 @@ func genAccountGettersSetters(
 			var seedProgramValue *[]byte
 			if account.PDA.Program != nil {
 				if account.PDA.Program.Value == nil {
-					panic("cannot handle non-const type program value in PDA seeds")
+					panic("cannot handle non-const type program value in PDA seeds" + account.Address)
 				}
 				seedProgramValue = &account.PDA.Program.Value
 			}
@@ -1452,7 +1452,8 @@ func genAccountGettersSetters(
 					}
 
 					for _, argv := range args {
-						if argv.Name == seedDef.Path {
+						argvName := strings.TrimPrefix(argv.Name, "_")
+						if argvName == seedDef.Path {
 
 							seedRefs[i] = ToLowerCamel(argv.Name)
 							seedTypes[i] = argv.Type
