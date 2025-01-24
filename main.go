@@ -16,6 +16,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gagliardetto/solana-go"
 
+	"github.com/dave/jennifer/jen"
 	. "github.com/dave/jennifer/jen"
 	bin "github.com/gagliardetto/binary"
 	. "github.com/gagliardetto/utilz"
@@ -706,6 +707,61 @@ func decodeErrorCode(rpcErr error) (errorCode int, ok bool) {
 				})
 			file.Add(code.Line())
 		}
+		{
+			builderFuncName := formatBuilderFuncName(insExportedName) + "Ext"
+			code := Empty()
+			code.Commentf(
+				"%s creates a new `%s` instruction builder.",
+				builderFuncName,
+				insExportedName,
+			).Line()
+			//
+			code.Func().Id(builderFuncName).Params(Id("remainingAccounts").Int()).Op("*").Id(insExportedName).
+				BlockFunc(func(body *Group) {
+					body.Id("nd").Op(":=").Op("&").Id(insExportedName).Block(
+						Id("AccountMetaSlice").Op(":").Make(Qual(PkgSolanaGo, "AccountMetaSlice"), Lit(instruction.Accounts.NumAccounts()).Op("+").Id("remainingAccounts")).Op(","),
+					)
+
+					// Set sysvar accounts and constant accounts:
+					instruction.Accounts.Walk("", nil, nil, func(parentGroupPath string, index int, parentGroup *IdlAccounts, account *IdlAccount) bool {
+						if isVar(account.Name) {
+							pureVarName := getSysVarName(account.Name)
+							is := isSysVar(pureVarName)
+							if is {
+								_, ok := sysVars[pureVarName]
+								if !ok {
+									panic(account)
+								}
+								def := Qual(PkgSolanaGo, "Meta").Call(Qual(PkgSolanaGo, pureVarName))
+								if account.Writable {
+									def.Dot("WRITE").Call()
+								}
+								if account.Signer {
+									def.Dot("SIGNER").Call()
+								}
+								body.Id("nd").Dot("AccountMetaSlice").Index(Lit(index)).Op("=").Add(def)
+							} else {
+								panic(account)
+							}
+						} else if account.Address != "" {
+							//def := Qual(PkgSolanaGo, "Meta").Call(Qual(PkgSolanaGo, "MustPublicKeyFromBase58").Call(Lit(account.Address)))
+							def := Qual(PkgSolanaGo, "Meta").Call(Id("Addresses").Index(Lit(account.Address)))
+							addresses[account.Address] = account.Address
+							if account.Writable {
+								def.Dot("WRITE").Call()
+							}
+							if account.Signer {
+								def.Dot("SIGNER").Call()
+							}
+							body.Id("nd").Dot("AccountMetaSlice").Index(Lit(index)).Op("=").Add(def)
+						}
+						return true
+					})
+
+					body.Return(Id("nd"))
+				})
+			file.Add(code.Line())
+		}
 
 		{
 			// Declare methods that set the parameters of the instruction:
@@ -850,6 +906,25 @@ func decodeErrorCode(rpcErr error) (errorCode int, ok bool) {
 				return true
 			})
 
+			file.Add(code.Line())
+		}
+		{
+			// Declare `AddRemainingAccounts` method on instruction:
+			code := Empty()
+
+			code.Line().Line().Func().Params(Id("inst").Op("*").Id(insExportedName)).Id("AddRemainingAccounts").Params(
+				Id("remainingAccounts").Index().Qual(PkgSolanaGo, "PublicKey"),
+			).Params(Op("*").Id(insExportedName)).
+				Block(
+					jen.Id("accounts").Op(":=").Lit(instruction.Accounts.NumAccounts()),
+					jen.For(
+						jen.Id("i").Op(",").Id("_").Op(":=").Range().Id("remainingAccounts"),
+					).Block(
+						jen.Id("index").Op(":=").Id("accounts").Op("+").Id("i"),
+						jen.Id("inst").Dot("AccountMetaSlice").Index(jen.Id("index")).Op("=").Qual(PkgSolanaGo, "Meta").Call(jen.Id("remainingAccounts").Index(jen.Id("i"))).Dot("WRITE").Call(),
+					),
+					Return(Id("inst")),
+				)
 			file.Add(code.Line())
 		}
 		{
