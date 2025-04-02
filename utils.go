@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 
 	. "github.com/dave/jennifer/jen"
@@ -110,4 +112,33 @@ func CodeIf(condition bool, code Code) Code {
 		return code
 	}
 	return Null()
+}
+func BytesStringToString(input string) (string, error) {
+	// 去除方括号
+	cleaned := strings.Trim(input, "[]")
+	if cleaned == "" {
+		return "", fmt.Errorf("输入为空或格式错误")
+	}
+
+	// 按逗号和空格分割
+	numStrs := strings.Split(cleaned, ", ")
+	if len(numStrs) == 0 {
+		return "", fmt.Errorf("无法解析字节数组")
+	}
+
+	// 转换为字节切片
+	var bytes []byte
+	for _, numStr := range numStrs {
+		num, err := strconv.Atoi(numStr) // 将字符串转为整数
+		if err != nil {
+			return "", fmt.Errorf("转换错误: %v", err)
+		}
+		if num < 0 || num > 255 { // 检查是否在 byte 范围内
+			return "", fmt.Errorf("字节值 %d 超出范围 (0-255)", num)
+		}
+		bytes = append(bytes, byte(num)) // 转为 byte 并追加
+	}
+
+	// 将字节切片转为字符串
+	return string(bytes), nil
 }

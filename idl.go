@@ -226,22 +226,23 @@ type IdlField struct {
 type IdlTypeAsString string
 
 const (
-	IdlTypeBool   IdlTypeAsString = "bool"
-	IdlTypeU8     IdlTypeAsString = "u8"
-	IdlTypeI8     IdlTypeAsString = "i8"
-	IdlTypeU16    IdlTypeAsString = "u16"
-	IdlTypeI16    IdlTypeAsString = "i16"
-	IdlTypeU32    IdlTypeAsString = "u32"
-	IdlTypeI32    IdlTypeAsString = "i32"
-	IdlTypeU64    IdlTypeAsString = "u64"
-	IdlTypeI64    IdlTypeAsString = "i64"
-	IdlTypeU128   IdlTypeAsString = "u128"
-	IdlTypeI128   IdlTypeAsString = "i128"
-	IdlTypeBytes  IdlTypeAsString = "bytes"
-	IdlTypeString IdlTypeAsString = "string"
-	IdlTypePubkey IdlTypeAsString = "pubkey"
-	IdlTypeF32    IdlTypeAsString = "f32"
-	IdlTypeF64    IdlTypeAsString = "f64"
+	IdlTypeBool      IdlTypeAsString = "bool"
+	IdlTypeU8        IdlTypeAsString = "u8"
+	IdlTypeI8        IdlTypeAsString = "i8"
+	IdlTypeU16       IdlTypeAsString = "u16"
+	IdlTypeI16       IdlTypeAsString = "i16"
+	IdlTypeU32       IdlTypeAsString = "u32"
+	IdlTypeI32       IdlTypeAsString = "i32"
+	IdlTypeU64       IdlTypeAsString = "u64"
+	IdlTypeI64       IdlTypeAsString = "i64"
+	IdlTypeU128      IdlTypeAsString = "u128"
+	IdlTypeI128      IdlTypeAsString = "i128"
+	IdlTypeBytes     IdlTypeAsString = "bytes"
+	IdlTypeString    IdlTypeAsString = "string"
+	IdlTypePubkey    IdlTypeAsString = "pubkey"
+	IdlTypePublicKey IdlTypeAsString = "publicKey"
+	IdlTypeF32       IdlTypeAsString = "f32"
+	IdlTypeF64       IdlTypeAsString = "f64"
 
 	// Custom additions:
 	IdlTypeUnixTimestamp IdlTypeAsString = "unixTimestamp"
@@ -268,6 +269,11 @@ type IdLTypeDefinedName struct {
 // User defined type.
 type IdlTypeDefined struct {
 	Defined IdLTypeDefinedName `json:"defined"`
+}
+
+// User defined type.
+type IdlTypeDefinedOld struct {
+	Defined string `json:"defined"`
 }
 
 // IdlTypeArray is a Wrapper type:
@@ -318,7 +324,11 @@ func (env *IdlType) UnmarshalJSON(data []byte) error {
 			if _, ok := v["defined"]; ok {
 				var target IdlTypeDefined
 				if err := TranscodeJSON(temp, &target); err != nil {
-					return err
+					var targetold IdlTypeDefinedOld
+					if err := TranscodeJSON(temp, &targetold); err != nil {
+						return err
+					}
+					target.Defined.Name = targetold.Defined
 				}
 				env.asIdlTypeDefined = &target
 			}

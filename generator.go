@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	. "github.com/dave/jennifer/jen"
 	"github.com/davecgh/go-spew/spew"
 	bin "github.com/gagliardetto/binary"
@@ -54,6 +55,8 @@ func typeStringToType(ts IdlTypeAsString) *Statement {
 	case IdlTypeString:
 		stat.String()
 	case IdlTypePubkey:
+		stat.Qual(PkgSolanaGo, "PublicKey")
+	case IdlTypePublicKey:
 		stat.Qual(PkgSolanaGo, "PublicKey")
 	case IdlTypeF32:
 		stat.Float32()
