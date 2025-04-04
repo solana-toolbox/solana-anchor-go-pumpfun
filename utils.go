@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/daog1/solana-anchor-go/sighash"
 	. "github.com/dave/jennifer/jen"
-	"github.com/fragmetric-labs/solana-anchor-go/sighash"
 	"github.com/gagliardetto/solana-go"
 	. "github.com/gagliardetto/utilz"
 )

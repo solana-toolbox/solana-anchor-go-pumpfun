@@ -1,11 +1,10 @@
-module github.com/henrymbaldwin/solana-anchor-go
+module github.com/daog1/solana-anchor-go
 
 go 1.22
 
 require (
 	github.com/dave/jennifer v1.7.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/fragmetric-labs/solana-anchor-go v0.0.0-20240909105437-f3871a64bb78
 	github.com/gagliardetto/binary v0.8.0
 	github.com/gagliardetto/gofuzz v1.2.2
 	github.com/gagliardetto/solana-go v1.11.0

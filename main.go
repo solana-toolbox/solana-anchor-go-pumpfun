@@ -16,11 +16,11 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gagliardetto/solana-go"
 
+	"github.com/daog1/solana-anchor-go/sighash"
 	"github.com/dave/jennifer/jen"
 	. "github.com/dave/jennifer/jen"
 	bin "github.com/gagliardetto/binary"
 	. "github.com/gagliardetto/utilz"
-	"github.com/henrymbaldwin/solana-anchor-go/sighash"
 	"golang.org/x/mod/modfile"
 )
 
