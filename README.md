@@ -42,3 +42,7 @@ panic(`not implemented - only IDL from ("anchor": ">=0.30.0") is available`)
 ```
 anchor idl convert  6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P_266791762.json >pump.json
 ```
+
+## 使用方法
+
+参考 https://github.com/daog1/pumpgo
